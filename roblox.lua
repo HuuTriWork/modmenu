@@ -1,3 +1,10 @@
+-- Anti-AFK feature
+local VirtualUser = game:GetService('VirtualUser')
+game:GetService('Players').LocalPlayer.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+end)
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -10,6 +17,15 @@ local function CreateElement(className, properties)
         element[prop] = value
     end
     return element
+end
+
+-- Notification function
+local function ShowNotification(title, text)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = title,
+        Text = text,
+        Duration = 3
+    })
 end
 
 local Cheats = {
@@ -25,6 +41,7 @@ local Cheats = {
                     part.CanCollide = not self.Enabled
                 end
             end
+            ShowNotification("NO-CLIP", self.Enabled and "Enabled" or "Disabled")
         end,
         Run = function(self)
             RunService.Stepped:Connect(function()
@@ -48,6 +65,7 @@ local Cheats = {
                 character.Humanoid.MaxHealth = self.Enabled and math.huge or 100
                 character.Humanoid.Health = self.Enabled and math.huge or 100
             end
+            ShowNotification("GOD MODE", self.Enabled and "Enabled" or "Disabled")
         end
     },
     
@@ -56,7 +74,16 @@ local Cheats = {
             local character = LocalPlayer.Character
             if character and character:FindFirstChildOfClass("Humanoid") then
                 character.Humanoid.Health = character.Humanoid.MaxHealth
+                ShowNotification("HEAL", "Health restored to full!")
             end
+        end
+    },
+    
+    AntiAFK = {
+        Enabled = true,
+        Toggle = function(self)
+            self.Enabled = not self.Enabled
+            ShowNotification("ANTI-AFK", self.Enabled and "Enabled" or "Disabled")
         end
     }
 }
@@ -72,8 +99,8 @@ local DarkCyberGUI = CreateElement("ScreenGui", {
 
 local MainFrame = CreateElement("Frame", {
     Name = "MainFrame",
-    Size = UDim2.new(0, 300, 0, 250),  
-    Position = UDim2.new(0.5, -150, 0.5, -125), 
+    Size = UDim2.new(0, 300, 0, 300),  -- Increased height for new button
+    Position = UDim2.new(0.5, -150, 0.5, -150), 
     BackgroundColor3 = Color3.fromRGB(30, 30, 35),
     BorderSizePixel = 0,
     Active = true,
@@ -197,7 +224,8 @@ end
 
 local NoClipButton = CreateStyledButton("NoClipButton", "NO-CLIP: OFF", UDim2.new(0, 0, 0, 0))
 local GodModeButton = CreateStyledButton("GodModeButton", "GOD MODE: OFF", UDim2.new(0, 0, 0, 50))  
-local HealButton = CreateStyledButton("HealButton", "HEAL FULL HP", UDim2.new(0, 0, 0, 100))  
+local HealButton = CreateStyledButton("HealButton", "HEAL FULL HP", UDim2.new(0, 0, 0, 100))
+local AntiAFKButton = CreateStyledButton("AntiAFKButton", "ANTI-AFK: ON", UDim2.new(0, 0, 0, 150))  -- New button
 
 local function UpdateButtonAppearance(button, enabled)
     if button.Name == "HealButton" then return end 
@@ -234,11 +262,17 @@ HealButton.MouseButton1Click:Connect(function()
     TweenService:Create(HealButton.UIStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(80, 80, 90)}):Play()
 end)
 
+AntiAFKButton.MouseButton1Click:Connect(function()
+    Cheats.AntiAFK:Toggle()
+    UpdateButtonAppearance(AntiAFKButton, Cheats.AntiAFK.Enabled)
+end)
+
 UpdateButtonAppearance(NoClipButton, Cheats.NoClip.Enabled)
 UpdateButtonAppearance(GodModeButton, Cheats.GodMode.Enabled)
+UpdateButtonAppearance(AntiAFKButton, Cheats.AntiAFK.Enabled)
 
 MainFrame.Size = UDim2.new(0, 300, 0, 0)  
 MainFrame.Position = UDim2.new(0.5, -150, 0.5, 0)  
-TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 250), Position = UDim2.new(0.5, -150, 0.5, -125)}):Play()
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 300), Position = UDim2.new(0.5, -150, 0.5, -150)}):Play()
 
 warn("MOD BY HUU TRI :D")
