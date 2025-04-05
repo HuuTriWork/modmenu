@@ -1,4 +1,3 @@
--- Anti-AFK feature
 local VirtualUser = game:GetService('VirtualUser')
 game:GetService('Players').LocalPlayer.Idled:Connect(function()
     VirtualUser:CaptureController()
@@ -19,7 +18,6 @@ local function CreateElement(className, properties)
     return element
 end
 
--- Notification function
 local function ShowNotification(title, text)
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = title,
