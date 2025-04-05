@@ -1,3 +1,139 @@
+local ToDisable = {
+    Textures = true,
+    VisualEffects = true,
+    Parts = true,
+    Particles = true,
+    Sky = true,
+    Shadows = true,  -- New setting
+    Terrain = true   -- New setting
+}
+
+local ToEnable = {
+    FullBright = false,
+    LowGraphics = true  -- New setting
+}
+
+local Stuff = {}
+
+local function OptimizeTerrain()
+    if not ToDisable.Terrain then return end
+    
+    local terrain = workspace:FindFirstChildOfClass("Terrain")
+    if terrain then
+        -- Modern alternative that works in all versions
+        pcall(function()
+            terrain.Decoration = false  -- Try older property first
+        end)
+        
+        pcall(function()
+            terrain.DecorationLayers = Enum.TerrainDecorationLayer.None  -- Try newer property
+        end)
+        
+        -- These water properties should work in all versions
+        terrain.WaterReflectance = 0
+        terrain.WaterTransparency = 1
+        terrain.WaterWaveSize = 0
+        terrain.WaterWaveSpeed = 0
+    end
+end
+
+-- Function to disable shadows
+local function DisableShadows()
+    if not ToDisable.Shadows then return end
+    
+    for _, v in next, game:GetDescendants() do
+        if v:IsA("BasePart") then
+            v.CastShadow = false
+            table.insert(Stuff, 1, v)
+        end
+    end
+end
+
+-- Main optimization loop
+for _, v in next, game:GetDescendants() do
+    if ToDisable.Parts then
+        if v:IsA("Part") or v:IsA("Union") or v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic
+            if ToEnable.LowGraphics then
+                v.Reflectance = 0
+                v.Transparency = v.Transparency > 0.5 and v.Transparency or 0
+            end
+            table.insert(Stuff, 1, v)
+        end
+    end
+    
+    if ToDisable.Particles then
+        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Explosion") or v:IsA("Sparkles") or v:IsA("Fire") then
+            v.Enabled = false
+            table.insert(Stuff, 1, v)
+        end
+    end
+    
+    if ToDisable.VisualEffects then
+        if v:IsA("PostEffect") then  -- Covers all post-processing effects
+            v.Enabled = false
+            table.insert(Stuff, 1, v)
+        end
+    end
+    
+    if ToDisable.Textures then
+        if v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
+            if v:IsA("Decal") then
+                v.Texture = ""
+            elseif v:IsA("Texture") then
+                v.TextureID = ""
+            elseif v:IsA("SurfaceAppearance") then
+                v.ColorMap = ""
+                v.MetalnessMap = ""
+                v.NormalMap = ""
+                v.RoughnessMap = ""
+            end
+            table.insert(Stuff, 1, v)
+        end
+    end
+    
+    if ToDisable.Sky then
+        if v:IsA("Sky") then
+            v.Parent = nil
+            table.insert(Stuff, 1, v)
+        end
+    end
+end
+
+-- Run additional optimizations
+DisableShadows()
+OptimizeTerrain()
+
+-- Optimize lighting
+if ToEnable.LowGraphics then
+    local lighting = game:GetService("Lighting")
+    lighting.GlobalShadows = false
+    lighting.FogEnd = 100000
+end
+
+game:GetService("TestService"):Message("Advanced Anti-Lag System : Successfully optimized "..#Stuff.." assets. Settings :")
+
+for i, v in next, ToDisable do
+    print(tostring(i)..": "..tostring(v))
+end
+
+for i, v in next, ToEnable do
+    print(tostring(i)..": "..tostring(v))
+end
+
+if ToEnable.FullBright then
+    local Lighting = game:GetService("Lighting")
+    
+    Lighting.FogEnd = math.huge
+    Lighting.FogStart = math.huge
+    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+    Lighting.Brightness = 5
+    Lighting.ColorShift_Bottom = Color3.fromRGB(255, 255, 255)
+    Lighting.ColorShift_Top = Color3.fromRGB(255, 255, 255)
+    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+end
+
+-- Anti-AFK system
 local VirtualUser = game:GetService('VirtualUser')
 game:GetService('Players').LocalPlayer.Idled:Connect(function()
     VirtualUser:CaptureController()
@@ -83,6 +219,73 @@ local Cheats = {
             self.Enabled = not self.Enabled
             ShowNotification("ANTI-AFK", self.Enabled and "Enabled" or "Disabled")
         end
+    },
+    
+    AntiLag = {
+        Enabled = false,
+        Toggle = function(self)
+            self.Enabled = not self.Enabled
+            if self.Enabled then
+                -- Apply anti-lag optimizations
+                for _, v in next, game:GetDescendants() do
+                    if ToDisable.Parts then
+                        if v:IsA("Part") or v:IsA("Union") or v:IsA("BasePart") then
+                            v.Material = Enum.Material.SmoothPlastic
+                            if ToEnable.LowGraphics then
+                                v.Reflectance = 0
+                                v.Transparency = v.Transparency > 0.5 and v.Transparency or 0
+                            end
+                        end
+                    end
+                    
+                    if ToDisable.Particles then
+                        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Explosion") or v:IsA("Sparkles") or v:IsA("Fire") then
+                            v.Enabled = false
+                        end
+                    end
+                    
+                    if ToDisable.VisualEffects then
+                        if v:IsA("PostEffect") then
+                            v.Enabled = false
+                        end
+                    end
+                    
+                    if ToDisable.Textures then
+                        if v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
+                            if v:IsA("Decal") then
+                                v.Texture = ""
+                            elseif v:IsA("Texture") then
+                                v.TextureID = ""
+                            elseif v:IsA("SurfaceAppearance") then
+                                v.ColorMap = ""
+                                v.MetalnessMap = ""
+                                v.NormalMap = ""
+                                v.RoughnessMap = ""
+                            end
+                        end
+                    end
+                    
+                    if ToDisable.Sky then
+                        if v:IsA("Sky") then
+                            v.Parent = nil
+                        end
+                    end
+                end
+                
+                DisableShadows()
+                OptimizeTerrain()
+                
+                if ToEnable.LowGraphics then
+                    local lighting = game:GetService("Lighting")
+                    lighting.GlobalShadows = false
+                    lighting.FogEnd = 100000
+                end
+                
+                ShowNotification("ANTI-LAG", "Enabled - Game optimized")
+            else
+                ShowNotification("ANTI-LAG", "Disabled - Some optimizations may persist")
+            end
+        end
     }
 }
 
@@ -97,8 +300,8 @@ local DarkCyberGUI = CreateElement("ScreenGui", {
 
 local MainFrame = CreateElement("Frame", {
     Name = "MainFrame",
-    Size = UDim2.new(0, 300, 0, 300),  -- Increased height for new button
-    Position = UDim2.new(0.5, -150, 0.5, -150), 
+    Size = UDim2.new(0, 300, 0, 350),  -- Increased height for new buttons
+    Position = UDim2.new(0.5, -150, 0.5, -175), 
     BackgroundColor3 = Color3.fromRGB(30, 30, 35),
     BorderSizePixel = 0,
     Active = true,
@@ -223,7 +426,8 @@ end
 local NoClipButton = CreateStyledButton("NoClipButton", "NO-CLIP: OFF", UDim2.new(0, 0, 0, 0))
 local GodModeButton = CreateStyledButton("GodModeButton", "GOD MODE: OFF", UDim2.new(0, 0, 0, 50))  
 local HealButton = CreateStyledButton("HealButton", "HEAL FULL HP", UDim2.new(0, 0, 0, 100))
-local AntiAFKButton = CreateStyledButton("AntiAFKButton", "ANTI-AFK: ON", UDim2.new(0, 0, 0, 150))  -- New button
+local AntiAFKButton = CreateStyledButton("AntiAFKButton", "ANTI-AFK: ON", UDim2.new(0, 0, 0, 150))
+local AntiLagButton = CreateStyledButton("AntiLagButton", "ANTI-LAG: OFF", UDim2.new(0, 0, 0, 200))  -- New Anti-Lag button
 
 local function UpdateButtonAppearance(button, enabled)
     if button.Name == "HealButton" then return end 
@@ -265,12 +469,18 @@ AntiAFKButton.MouseButton1Click:Connect(function()
     UpdateButtonAppearance(AntiAFKButton, Cheats.AntiAFK.Enabled)
 end)
 
+AntiLagButton.MouseButton1Click:Connect(function()
+    Cheats.AntiLag:Toggle()
+    UpdateButtonAppearance(AntiLagButton, Cheats.AntiLag.Enabled)
+end)
+
 UpdateButtonAppearance(NoClipButton, Cheats.NoClip.Enabled)
 UpdateButtonAppearance(GodModeButton, Cheats.GodMode.Enabled)
 UpdateButtonAppearance(AntiAFKButton, Cheats.AntiAFK.Enabled)
+UpdateButtonAppearance(AntiLagButton, Cheats.AntiLag.Enabled)
 
 MainFrame.Size = UDim2.new(0, 300, 0, 0)  
 MainFrame.Position = UDim2.new(0.5, -150, 0.5, 0)  
-TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 300), Position = UDim2.new(0.5, -150, 0.5, -150)}):Play()
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 300, 0, 350), Position = UDim2.new(0.5, -150, 0.5, -175)}):Play()
 
 warn("MOD BY HUU TRI :D")
